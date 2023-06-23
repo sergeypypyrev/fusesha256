@@ -113,5 +113,3 @@ int main(int argc, char** argv) {
 	argv[2] = NULL;
 	return fuse_main(argc - 1, argv, &operations, NULL);
 }
-
-// make g++ libssl-dev libfuse-dev CONF=ubuntu
