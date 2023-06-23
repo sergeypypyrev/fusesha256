@@ -1,12 +1,20 @@
 #define FUSE_USE_VERSION 29
+#define LOG_FILE "/tmp/fuse.log"
 #define SHA_LENGTH 64
 
 #define EVP_ERROR(context) { EVP_MD_CTX_free(context); return -ENOMEM; }
+#ifdef __linux__
+#define THREAD_ID(thread) thread
+#else // not tested
+#define THREAD_ID(thread) (long)(&thread)
+#endif
 
 #include <openssl/evp.h>
 #include <fuse.h>
 
 #include <sys/stat.h>
+#include <pthread.h>
+#include <unistd.h>
 #include <dirent.h>
 #include <string.h>
 
@@ -50,6 +58,11 @@ int sha_readdir(const char *path, void *buff, fuse_fill_dir_t filler, off_t, str
 }
 
 int sha_open(const char *path, struct fuse_file_info *) {
+	pthread_t thread = pthread_self();
+	ofstream ofs(LOG_FILE, ofstream::app);
+	ofs << "pid is " << getpid() << endl;
+	ofs << "thread is " << THREAD_ID(thread) << endl;
+	ofs.close();
 	struct stat stat;
 	if (::stat(realPath(path).c_str(), &stat) || !S_ISREG(stat.st_mode))
 		return -ENOENT;
